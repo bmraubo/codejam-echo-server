@@ -6,12 +6,14 @@ HOST = "localhost"
 PORT = 4444
 
 async def receive_message(socket):
-    return socket.recv()
+    return await socket.recv()
 
 async def echo_message(socket):
     while True:
         message = await receive_message(socket)
+        print(message)
         if message == "close":
+            await socket.send(message)
             socket.close()
             sys.exit()
         await socket.send(message)
