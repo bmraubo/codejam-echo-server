@@ -1,26 +1,23 @@
 import sys
 import asyncio
-import websockets
+from fastapi import FastAPI, WebSocket
+import uvicorn
+
 
 HOST = "localhost"
 PORT = 4444
 
-async def receive_message(socket):
-    return await socket.recv()
+app = FastAPI()
 
-async def echo_message(socket):
+@app.websocket("/")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
     while True:
-        message = await receive_message(socket)
-        print(message)
+        message = await websocket.receive_text()
+        await websocket.send_text(message)
         if message == "close":
-            await socket.send(message)
-            socket.close()
+            websocket.close()
             sys.exit()
-        await socket.send(message)
-
-async def main():
-    async with websockets.serve(echo_message, HOST, PORT):
-        await asyncio.Future()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    uvicorn.run(app, host="localhost", port=4444, debug=True)
